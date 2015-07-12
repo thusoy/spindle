@@ -319,13 +319,6 @@ sed -i /etc/inittab -e "s|^\(1:2345.*getty.*tty1.*\)|\
 EOF
 }
 
-# Deprecated in favour of using the Debian packaging
-download_and_extract_firmware_if_necessary() {
-  if ! [ -d firmware ]; then
-    git clone git://github.com/raspberrypi/firmware.git
-  fi
-}
-
 cd $WORKDIR
 dotask branch_image ../$OUTDIR/stage1.$IMGFORMAT $CURIMG
 dotask run_qemu $CURIMG
@@ -345,7 +338,6 @@ dotask install_raspi_config
 dotask update_issue
 dotask allow_starting_services
 dotask shutdown_qemu
-#dotask download_and_extract_firmware_if_necessary
 sudo -v
 # We have to copy the /boot from root partition to boot partition. Temporary 
 # hack
