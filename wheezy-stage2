@@ -193,18 +193,48 @@ EOF
 # Relies on the fact my repo was already added in install_firmware
 install_raspi_config() {
   apt_install raspi-config | onvm_chroot sh -l -e -
-  onvm_chroot sh -l -e - <<\EOF
-# Automatically log in on tty1 until raspi-config configures it to do 
-# otherwise
-sed -i /etc/inittab -e "s|^\(1:2345.*getty.*tty1.*\)|\
-#\1 # RPICFG_TO_ENABLE\n1:2345:respawn:/bin/login -f root tty1 </dev/tty1 >/dev/tty1 2>\&1 # RPICFG_TO_DISABLE|"
-EOF
+}
+
+expand_rootfs_on_first_boot() {
+  onvm_chroot sh -l -e - <<\EOF1
+cat <<\EOF2 > /etc/init.d/resize2fs_initial &&
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          resize2fs_initial
+# Required-Start:
+# Required-Stop:
+# Default-Start: 2 3 4 5 S
+# Default-Stop:
+# Short-Description: Start resizing of root filesystem and reboot
+# Description:
+### END INIT INFO
+
+. /lib/lsb/init-functions
+. $(which raspi-config)
+
+case "$1" in
+  start)
+    log_daemon_msg "Starting resize2fs_initial" &&
+    do_expand_rootfs &&
+    rm /etc/init.d/resize2fs_initial &&
+    update-rc.d resize2fs_initial remove &&
+    log_end_msg $? &&
+    reboot
+    ;;
+  *)
+    echo "Usage: $0 start" >&2
+    exit 3
+    ;;
+esac
+EOF2
+EOF1
 }
 
 cd $WORKDIR
 dotask branch_image ../$OUTDIR/stage1.$IMGFORMAT $CURIMG
 dotask run_qemu $CURIMG
 dotask mount_apt_cache
+dotask expand_rootfs_on_first_boot
 dotask disable_starting_services
 dotask configure_users
 dotask configure_fstab
