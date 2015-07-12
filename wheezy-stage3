@@ -105,35 +105,24 @@ EOF
 }
 
 install_packages() {
-  # we may want to break out DEBIAN_FRONTEND=noninteractive
-  ssh_in_to_qemu chroot /mnt sh -l -ex - <<\EOF
+  ssh_in_to_qemu chroot /mnt sh -l -ex - <<EOF
 apt-get update
-# install some utils
-apt-get install -y ssh locales less fbset sudo psmisc strace module-init-tools ifplugd ed ncdu
-apt-get install -y console-setup keyboard-configuration debconf-utils parted unzip
-apt-get install -y build-essential manpages-dev python bash-completion gdb pkg-config
-apt-get install -y python-rpi.gpio v4l-utils
-apt-get install -y lua5.1
-[ "$(dpkg --print-architecture)" = armhf ] && apt-get install -y luajit
-apt-get install -y hardlink ca-certificates curl
-apt-get install -y fake-hwclock ntp nfs-common usbutils
-apt-get install -y --no-install-recommends cifs-utils
+$(apt_install ssh locales less sudo strace kmod ifplugd ed parted)
+$(apt_install build-essential manpages-dev bash-completion pkg-config)
+$(apt_install python-rpi.gpio v4l-utils hardlink curl)
+
 echo "deb http://archive.raspberrypi.org/debian/ wheezy main untested" > /etc/apt/sources.list.d/raspi.list
 apt-get update
-apt-get install -y libraspberrypi-dev libraspberrypi-doc libfreetype6-dev
+$(apt_install libraspberrypi-dev libraspberrypi-doc libfreetype6-dev)
+
 echo "deb http://archive.raspberrypi.org/debian/ wheezy main" > /etc/apt/sources.list.d/raspi.list
 printf "# Uncomment line below then 'apt-get update' to enable 'apt-get source'\n" >> /etc/apt/sources.list.d/raspi.list
 printf "#deb-src http://archive.raspberrypi.org/debian/ wheezy main\n" >> /etc/apt/sources.list.d/raspi.list
 apt-get update
-# Install stuff for wireless
-apt-get install -y wpasupplicant wireless-tools firmware-atheros firmware-brcm80211 \
-  firmware-libertas firmware-ralink firmware-realtek
+
 /etc/init.d/fake-hwclock stop # save current time
 update-rc.d hwclock.sh disable
-# Don't need to start these by default, wastes boot time
-update-rc.d nfs-common disable
-update-rc.d rpcbind disable
-apt-get install -y dosfstools
+$(apt_install dosfstools)
 EOF
 }
 
@@ -141,15 +130,6 @@ cache_keymap() {
   onvm_chroot sh -l -e - <<\EOF
 setupcon --force --save-only -v
 /etc/init.d/fake-hwclock stop # save current time
-EOF
-}
-
-add_pi_user_to_groups() {
-  onvm_chroot sh -l -ex - <<\EOF
-groupadd -f -r input
-for GRP in adm dialout cdrom audio users sudo video games plugdev input; do
-  adduser pi $GRP
-done
 EOF
 }
 
@@ -163,63 +143,6 @@ EOF
 make_udev_input_rule() {
   onvm_chroot sh -l -e - <<EOF
 printf 'SUBSYSTEM=="input", GROUP="input", MODE="0660"\n' > /etc/udev/rules.d/99-input.rules
-EOF
-}
-
-configure_wifi() {
-  onvm_chroot sh -l -e - <<EOF
-cat <<\EOF1 >> /etc/network/interfaces
-
-allow-hotplug wlan0
-iface wlan0 inet manual
-wpa-roam /etc/wpa_supplicant/wpa_supplicant.conf
-iface default inet dhcp
-EOF1
-cat <<\EOF2 > /etc/wpa_supplicant/wpa_supplicant.conf
-ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-update_config=1
-EOF2
-chmod 600 /etc/wpa_supplicant/wpa_supplicant.conf
-adduser pi netdev
-EOF
-}
-
-apply_noobs_os_config() {
-  onvm_chroot sh -l -ex - <<\EOF
-cat <<\EOF1 > /etc/init.d/apply_noobs_os_config
-#!/bin/sh
-### BEGIN INIT INFO
-# Provides:          apply_noobs_os_config
-# Required-Start:
-# Required-Stop:
-# Default-Start: 2
-# Default-Stop:
-# Short-Description: Apply config from /boot/os_config.json
-# Description:
-### END INIT INFO
-
-. /lib/lsb/init-functions
-
-set -e
-
-case "$1" in
-  start)
-    log_daemon_msg "Applying config from /boot/os_config.json (if it exists)"
-    if raspi-config --apply-os-config; then
-      rm /etc/init.d/apply_noobs_os_config && update-rc.d apply_noobs_os_config remove
-      log_end_msg 0
-    else
-      log_end_msg 1
-    fi
-    ;;
-  *)
-    echo "Usage: $0 start" >&2
-    exit 3
-    ;;
-esac
-EOF1
-chmod +x /etc/init.d/apply_noobs_os_config
-update-rc.d apply_noobs_os_config start 2
 EOF
 }
 
@@ -292,13 +215,6 @@ configure_ifplugd() {
   onvm_chroot sh -l -ex - <<\EOF
 sed /etc/default/ifplugd -i -e 's/^INTERFACES.*/INTERFACES="auto"/'
 sed /etc/default/ifplugd -i -e 's/^HOTPLUG_INTERFACES.*/HOTPLUG_INTERFACES="all"/'
-EOF
-}
-
-add_opt_vc_lib_to_ld_so() {
-  onvm_chroot sh -l -ex - <<EOF
-echo "/opt/vc/lib" > /etc/ld.so.conf.d/vmcs.conf
-ldconfig
 EOF
 }
 
@@ -395,26 +311,6 @@ set_default_kernel_modules() {
 EOF
 }
 
-configure_sound() {
-  onvm_chroot sh -e - <<EOF
-cat <<\EOF1 > /etc/asound.conf
-pcm.mmap0 {
-    type mmap_emul;
-    slave {
-      pcm "hw:0,0";
-    }
-}
-
-pcm.!default {
-  type plug;
-  slave {
-    pcm mmap0;
-  }
-}
-EOF1
-EOF
-}
-
 cd $WORKDIR
 dotask branch_image ../$OUTDIR/stage2.$IMGFORMAT $CURIMG
 dotask run_qemu $CURIMG
@@ -424,11 +320,8 @@ dotask configure_apt
 dotask set_debconf_selections
 dotask install_packages
 dotask configure_ifplugd
-dotask add_pi_user_to_groups
 dotask configure_useradd
 dotask make_udev_input_rule
-dotask configure_wifi
-#dotask add_opt_vc_lib_to_ld_so
 dotask setup_sudoers
 dotask setup_swap
 dotask setup_console_setup
@@ -441,10 +334,7 @@ dotask save_space_using_hardlink
 dotask adjust_sysctl
 dotask allow_starting_services
 dotask remove_ssh_host_keys
-dotask apply_noobs_os_config
 dotask set_default_kernel_modules
-# Latest firmware does not need mmap emulation, so skip asound.conf creation
-#dotask configure_sound
 dotask update_issue
 dotask fingerprint_debian
 dotask shutdown_qemu
