@@ -241,7 +241,7 @@ m++/7s3K3L0zWopdhMVcgg6Nt9gcjzqN1c0gy55L/g==
 -----END PGP PUBLIC KEY BLOCK-----
 EOF1
 apt-get update
-apt-get install -y libraspberrypi-bin libraspberrypi0 raspberrypi-bootloader
+apt-get install -y libraspberrypi-bin libraspberrypi0 raspberrypi-bootloader fake-hwclock
 echo "deb http://archive.raspberrypi.org/debian/ wheezy main" > /etc/apt/sources.list.d/raspi.list
 apt-get update
 echo "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 \
