@@ -187,11 +187,6 @@ EOF1
 # blacklist snd-soc-pcm512x
 # blacklist snd-soc-wm8804
 # EOF2
-cat <<EOF3 > /etc/modprobe.d/ipv6.conf
-# Don't load ipv6 by default
-alias net-pf-10 off
-#alias ipv6 off
-EOF3
 EOF
 }
 
