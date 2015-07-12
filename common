@@ -312,7 +312,7 @@ download_if_necessary() {
 }
 
 get_git_hash() {
-  git log --pretty=format:'%h' -n 1
+  git rev-parse --short HEAD
 }
 
 update_issue() {
