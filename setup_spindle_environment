@@ -107,11 +107,8 @@ chmod 755 "$TARGET_DIR"/usr/sbin/policy-rc.d
 
 # Make sure sudo is enabled within chroot
 chmod +w "$TARGET_DIR"/etc/sudoers
-echo "%admin ALL=(ALL) ALL" >> "$TARGET_DIR"/etc/sudoers
+echo "%admin ALL=(ALL) NOPASSWD: ALL" >> "$TARGET_DIR"/etc/sudoers
 chmod -w "$TARGET_DIR"/etc/sudoers
-
-printf "Please enter the password you would like for your schroot user (needed for sudo)\n"
-schroot -c spindle --directory=/tmp passwd $USERS
 
 printf "\nchroot created at '%s'. Use \`schroot -c spindle\` to enter it\n" "$TARGET_DIR"
 FINISHED_SUCCESSFULLY=1
