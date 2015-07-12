@@ -241,7 +241,7 @@ m++/7s3K3L0zWopdhMVcgg6Nt9gcjzqN1c0gy55L/g==
 -----END PGP PUBLIC KEY BLOCK-----
 EOF1
 apt-get update
-apt-get install -y libraspberrypi-bin libraspberrypi0 raspberrypi-bootloader fake-hwclock
+$(apt_install libraspberrypi-bin libraspberrypi0 raspberrypi-bootloader fake-hwclock)
 echo "deb http://archive.raspberrypi.org/debian/ wheezy main" > /etc/apt/sources.list.d/raspi.list
 apt-get update
 echo "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 \
@@ -310,8 +310,8 @@ EOF
 
 # Relies on the fact my repo was already added in install_firmware
 install_raspi_config() {
+  apt_install raspi-config | onvm_chroot sh -l -e -
   onvm_chroot sh -l -e - <<\EOF
-apt-get install -y raspi-config
 # Automatically log in on tty1 until raspi-config configures it to do 
 # otherwise
 sed -i /etc/inittab -e "s|^\(1:2345.*getty.*tty1.*\)|\
