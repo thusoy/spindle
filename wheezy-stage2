@@ -227,7 +227,6 @@ dotask branch_image ../$OUTDIR/stage1.$IMGFORMAT $CURIMG
 dotask run_qemu $CURIMG
 dotask mount_apt_cache
 dotask expand_rootfs_on_first_boot
-dotask disable_starting_services
 dotask configure_sources_list
 dotask configure_root_ssh_keys
 dotask configure_fstab
@@ -238,7 +237,6 @@ dotask configure_inittab
 dotask install_firmware
 dotask install_raspi_config
 dotask update_issue
-dotask allow_starting_services
 dotask shutdown_qemu
 sudo -v
 # We have to copy the /boot from root partition to boot partition. Temporary 
