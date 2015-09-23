@@ -217,11 +217,8 @@ sed /etc/default/ifplugd -i -e 's/^HOTPLUG_INTERFACES.*/HOTPLUG_INTERFACES="all"
 EOF
 }
 
-setup_sudoers() {
+remove_root_password() {
   onvm_chroot sh -l -ex - <<EOF
-chmod +w /etc/sudoers
-echo "pi ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-chmod -w /etc/sudoers
 usermod --pass='*' root # don't need root password any more
 EOF
 }
@@ -321,7 +318,7 @@ dotask install_packages
 dotask configure_ifplugd
 dotask configure_useradd
 dotask make_udev_input_rule
-dotask setup_sudoers
+dotask remove_root_password
 dotask setup_swap
 dotask setup_console_setup
 dotask cache_keymap
