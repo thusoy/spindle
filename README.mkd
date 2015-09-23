@@ -23,7 +23,8 @@ Having a secure-by-default layout requires a couple of things:
     - ssh host keys can optionally be added in the build step
     - hdmi will not be disabled, to be able to debug boot problems
     - likewise for usb to enable the use of direct keyboard
-    - expands root partition automatically on first boot
+    - first boot to single-user mode and expands root partition automatically
+      before reboot to normal mode
     - preferably would use a VM to build the image to enable it to be built
       from any platform. (this is probably the costliest step)
 
