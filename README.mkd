@@ -1,5 +1,32 @@
 # spindle - a tool to help spin distribution images
 
+## FORK GOALS
+
+This is a fork of spindle, with the aim to build a raspberry distribution that
+can boot completely headless, just like a cloud VM. This requires each user to
+build their own image, customized with:
+
+    - root user ssh keys (no other users are created)
+    - if the pi boots without a known ip, a ssh tunnel proxy host, ssh key with
+      access to the tunnel host, and tunnel host pubkeys.
+    - if wifi is needed, ssid and password can be set in the build step
+    - hostname is configurable in the build step
+
+Having a secure-by-default layout requires a couple of things:
+    - ssh 6.9 (with ed25519 support) installed instead of dropbear
+    - build should not depend on any files fetched over http
+    - builds should be very minimal, ie. no kernel modules for sound or uio,
+      hwrng that helps feed /dev/random
+    - preseeded random pool created from building machine
+    - no X or other learning tools
+    - no default users/passwords
+    - ssh host keys can optionally be added in the build step
+    - hdmi will not be disabled, to be able to debug boot problems
+    - likewise for usb to enable the use of direct keyboard
+    - expands root partition automatically on first boot
+    - preferably would use a VM to build the image to enable it to be built
+      from any platform. (this is probably the costliest step)
+
 ## Description
 spindle is a set of scripts to aid building and working on a distribution 
 image. I've been using this tool to generate Debian wheezy images for the 
