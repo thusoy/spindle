@@ -107,9 +107,8 @@ EOF
 install_packages() {
   ssh_in_to_qemu chroot /mnt sh -l -ex - <<EOF
 apt-get update
-$(apt_install ssh locales less sudo strace kmod ifplugd ed parted)
-$(apt_install build-essential manpages-dev bash-completion pkg-config)
-$(apt_install python-rpi.gpio v4l-utils hardlink curl)
+$(apt_install locales less sudo strace kmod ifplugd ed parted)
+$(apt_install build-essential manpages-dev pkg-config curl hardlink)
 
 echo "deb http://archive.raspberrypi.org/debian/ wheezy main untested" > /etc/apt/sources.list.d/raspi.list
 apt-get update
