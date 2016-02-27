@@ -19,7 +19,7 @@ wget http://snapshot.debian.org/archive/debian/20120308T042544Z/pool/main/q/qemu
 wget http://snapshot.debian.org/archive/debian/20120303T221521Z/pool/main/c/ceph/librbd1_0.43-1_${MYARCH}.deb
 wget http://snapshot.debian.org/archive/debian/20120303T221521Z/pool/main/c/ceph/librados2_0.43-1_${MYARCH}.deb
 sudo dpkg -i *
-sudo apt-get install -f
+sudo apt-get install -fy
 
 printf "Hopefully downgraded to qemu 1.0.1 successfully, take a look...\n"
 dpkg -l | grep qemu
