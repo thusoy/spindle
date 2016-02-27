@@ -206,11 +206,11 @@ cat <<\EOF2 > /etc/init.d/resize2fs_initial &&
 
 case "$1" in
   start)
-    log_daemon_msg "Starting resize2fs_initial" &&
-    do_expand_rootfs &&
-    rm /etc/init.d/resize2fs_initial &&
-    update-rc.d resize2fs_initial remove &&
-    log_end_msg $? &&
+    log_daemon_msg "Starting resize2fs_initial"
+    do_expand_rootfs
+    rm /etc/init.d/resize2fs_initial
+    update-rc.d resize2fs_initial remove
+    log_end_msg $?
     reboot
     ;;
   *)
@@ -219,6 +219,8 @@ case "$1" in
     ;;
 esac
 EOF2
+chmod +x /etc/init.d/resize2fs_initial
+update-rc.d resize2fs_initial defaults
 EOF1
 }
 
